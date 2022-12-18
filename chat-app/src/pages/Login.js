@@ -7,7 +7,8 @@ import {
   FormGroup,
   Input,
   Label,
-  FormText
+  FormText,
+  Spinner
 } from 'reactstrap';
 import Cookies from 'js-cookie';
 import sha512 from 'js-sha512';
@@ -23,13 +24,15 @@ export default class Login extends Component {
         usernameState: '',
         passwordState: ''
       },
-      error: false
+      error: false,
+      spinner: false
     }
     this.handleChange = this.handleChange.bind(this);
   }
 
   doLoginRequest = (e) => {
     e.preventDefault();
+    this.setState({spinner: true});
     let data = {
       username: this.state.username,
       password: sha512(this.state.password)
@@ -47,7 +50,7 @@ export default class Login extends Component {
           return (response.json());
       }
       else {
-        this.setState({error: true});
+        this.setState({error: true, spinner: false});
       }
     }).catch((error) => {
         console.log(error);
@@ -119,6 +122,10 @@ export default class Login extends Component {
       errorMessage = <p/>
     }
 
+    let spinner;
+    if(this.state.spinner)
+      spinner = <Spinner color="primary" size="" style={{margin:'20px'}}>Loading...</Spinner>
+
     if(Cookies.get('id'))
       return (
         <div>
@@ -170,6 +177,7 @@ export default class Login extends Component {
                 <FormText>Password must not contain spaces and must be 8 or more characters long.</FormText>
               </FormGroup>
               {errorMessage}
+              {spinner}
               <Button>Submit</Button>
             </Form>
           </div>
