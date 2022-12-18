@@ -35,7 +35,7 @@ export default class Login extends Component {
       password: sha512(this.state.password)
     }
 
-    fetch('http://localhost:5000/login', {
+    fetch('http://localhost:5000/auth', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
@@ -114,7 +114,7 @@ export default class Login extends Component {
   render() {
     let errorMessage;
     if(this.state.error) {
-      errorMessage = <p id='error-message'>Fields are incorrect!</p>
+      errorMessage = <p id='error-message'>Error logging in! Make sure your username and password are correct!</p>
     } else {
       errorMessage = <p/>
     }
@@ -138,13 +138,13 @@ export default class Login extends Component {
           <div id='center-stack'>
             <h2>Login</h2>
             <Form id='login-container' onSubmit={this.doLoginRequest}>
-              <FormGroup>
+              <FormGroup style={{width: '75%'}}>
                 <Label for='usernameInput'>Username:</Label>
                 <Input
                   type='username'
                   name='username'
                   id='usernameInput'
-                  placeholder='Enter Username' 
+                  placeholder='Enter Username'
                   valid={this.state.validate.usernameState === 'has-success'}
                   invalid={this.state.validate.usernameState === 'has-danger'}
                   onChange={(e) => {
@@ -153,7 +153,7 @@ export default class Login extends Component {
                   }}
                 />
               </FormGroup>
-              <FormGroup>
+              <FormGroup style={{width: '75%'}}>
                 <Label for='passwordInput'>Password:</Label>
                 <Input
                   type='password'
