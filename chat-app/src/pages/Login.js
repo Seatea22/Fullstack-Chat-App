@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Navigation from '../components/Navigation'
-import './Login.css';
+import './Auth.css';
 import {
   Button,
   Form,
@@ -10,9 +10,8 @@ import {
   FormText,
   Spinner
 } from 'reactstrap';
-import Cookies from 'js-cookie';
 import sha512 from 'js-sha512';
-import { createHashHistory } from '@remix-run/router';
+import getUserCookie, {addUserCookie} from '../utils/CookieUtils';
 
 export default class Login extends Component {
   constructor(props) {
@@ -25,7 +24,8 @@ export default class Login extends Component {
         passwordState: ''
       },
       error: false,
-      spinner: false
+      spinner: false,
+      user: getUserCookie()
     }
     this.handleChange = this.handleChange.bind(this);
   }
@@ -50,22 +50,17 @@ export default class Login extends Component {
           return (response.json());
       }
       else {
+        console.log("Failed POST: " + response.status + ": " + response.statusText);
         this.setState({error: true, spinner: false});
       }
     }).catch((error) => {
         console.log(error);
     }).then(response => {
-        this.addCookies(response);
-        window.location.reload(false);
+        if(response) {
+          addUserCookie(response);
+          window.location.reload(false);
+        }
     })
-  }
-
-  addCookies = (response) => {
-    console.log(response);
-    Cookies.set('id', response.id, { expires: 7 });
-    Cookies.set('username', response.username, { expires: 7 });
-    Cookies.set('email', response.email, { expires: 7 });
-    Cookies.set('session_key', response.session_key, { expires: 7 });
   }
 
   handleChange = (e) => {
@@ -74,47 +69,9 @@ export default class Login extends Component {
     console.log(name, e.target.value);
   }
 
-  checkEmail = (e) => {
-    const emailRegex =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    let validate = this.state.validate;
-
-    if (emailRegex.test(e.target.value) && e.target.value.trim().length !== 0) {
-      validate.emailState = 'has-success';
-    } else {
-      validate.emailState = 'has-danger';
-    }
-
-    this.setState({validate: validate});
-  }
-
-  checkUsername = (e) => {
-    const spaceRegex = /\s/g;
-    let validate = this.state.validate;
-    
-    if(!spaceRegex.test(e.target.value) && e.target.value.trim().length !== 0) {
-      validate.usernameState = 'has-sucess';
-    } else {
-      validate.usernameState = 'has-danger';
-    }
-
-    this.setState({validate: validate});
-  }
-
-  checkPassword = (e) => {
-    const spaceRegex = /\s/g;
-    let validate = this.state.validate;
-    
-    if(!spaceRegex.test(e.target.value) && e.target.value.trim().length !== 0 && e.target.value.length >= 8) {
-      validate.passwordState = 'has-sucess';
-    } else {
-      validate.passwordState = 'has-danger';
-    }
-
-    this.setState({validate: validate});
-  }
-
   render() {
+    let user = this.state.user;
+    console.log("user", user);
     let errorMessage;
     if(this.state.error) {
       errorMessage = <p id='error-message'>Error logging in! Make sure your username and password are correct!</p>
@@ -126,22 +83,23 @@ export default class Login extends Component {
     if(this.state.spinner)
       spinner = <Spinner color="primary" size="" style={{margin:'20px'}}>Loading...</Spinner>
 
-    if(Cookies.get('id'))
+    if(user) {
       return (
         <div>
-          <Navigation />
+          <Navigation user={user}/>
           <div id='login-container' style={{width: "auto"}}>
-            <p>id: {Cookies.get('id')}</p>
-            <p>username: {Cookies.get('username')}</p>
-            <p>email: {Cookies.get('email')}</p>
-            <p>session key: {Cookies.get('session_key')}</p>
+            <p>id: {user.id}</p>
+            <p>username: {user.username}</p>
+            <p>email: {user.email}</p>
+            <p>session key: {user.session_key}</p>
           </div>
         </div>
       );
+    }
     else {
       return (
         <div>
-          <Navigation />
+          <Navigation user={user}/>
           <div id='center-stack'>
             <h2>Login</h2>
             <Form id='login-container' onSubmit={this.doLoginRequest}>
@@ -155,7 +113,7 @@ export default class Login extends Component {
                   valid={this.state.validate.usernameState === 'has-success'}
                   invalid={this.state.validate.usernameState === 'has-danger'}
                   onChange={(e) => {
-                    this.checkUsername(e);
+                    // this.checkUsername(e);
                     this.handleChange(e);
                   }}
                 />
@@ -170,11 +128,10 @@ export default class Login extends Component {
                   valid={this.state.validate.passwordState === 'has-success'}
                   invalid={this.state.validate.passwordState === 'has-danger'} 
                   onChange={(e) => {
-                    this.checkPassword(e);
+                    // this.checkPassword(e);
                     this.handleChange(e);
                   }}
                 />
-                <FormText>Password must not contain spaces and must be 8 or more characters long.</FormText>
               </FormGroup>
               {errorMessage}
               {spinner}

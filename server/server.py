@@ -15,7 +15,8 @@ app = Flask(__name__) #create Flask instance
 CORS(app) #Enable CORS on Flask server to work with Nodejs pages
 api = Api(app) #api router
 
-api.add_resource(GetUsers,'/users')
+api.add_resource(Users,'/users')
+api.add_resource(AuthUser, '/auth')
 
 
 if __name__ == '__main__':

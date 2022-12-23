@@ -1,11 +1,13 @@
 import React, { Component } from 'react'
 import Navigation from '../components/Navigation';
+import getUserCookie from '../utils/CookieUtils';
 
 export default class Users extends Component {
     constructor(props) {
         super(props);
         this.state = {
-          users: []
+          users: [],
+          user: getUserCookie()
         }
       }
     
@@ -56,7 +58,7 @@ export default class Users extends Component {
     
         return (
           <div>
-            <Navigation />
+            <Navigation user={this.state.user}/>
             {userList}
           </div>
         )

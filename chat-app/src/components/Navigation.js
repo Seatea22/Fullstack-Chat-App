@@ -1,12 +1,13 @@
 import Cookies from 'js-cookie';
 import React from 'react';
 import { Collapse, Navbar, NavbarToggler, NavbarBrand, Nav, NavItem, NavLink, Button } from 'reactstrap';
+import { removeUserCookie } from '../utils/CookieUtils';
 
 export default class Navigation extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-        open: false
+            open: false
         };
         this.toggleNavbar = this.toggleNavbar.bind(this);
     }
@@ -22,7 +23,7 @@ export default class Navigation extends React.Component {
         fetch('http://localhost:5000/auth', {
             method: 'DELETE',
             body: JSON.stringify({
-                session_key: Cookies.get('session_key')
+                session_key: this.props.user.session_key
             }),
             headers: {
                 'Content-Type': "application/json; charset=UTF-8"
@@ -38,24 +39,23 @@ export default class Navigation extends React.Component {
             }).catch((error) => {
                 console.log(error);
             }).then(response => {
-                Cookies.remove('id');
-                Cookies.remove('username');
-                Cookies.remove('email');
-                Cookies.remove('session_key');
+                removeUserCookie();
                 console.log(response);
                 window.location.reload(false);
         });
     }
 
     render() {
-        let authenticationButton;
-        let welcomeBanner;
-        if(!Cookies.get('id')) {
-            authenticationButton = <Button href='/login'>Login</Button>
+        let authentication, welcomeBanner;
+        if(!this.props.user) {
+            authentication = <div>
+                                <Button href='/register' style={{marginRight: "10px"}}>Register</Button>
+                                <Button href='/login'>Login</Button>
+                            </div>
             welcomeBanner = <h1/>
         } else {
-            authenticationButton = <Button onClick={this.logout}>Logout</Button>
-            welcomeBanner = <h1>Welcome {Cookies.get('username')}!</h1>
+            authentication = <Button onClick={this.logout}>Logout</Button>
+            welcomeBanner = <h1>Welcome {this.props.user.username}!</h1>
         }
 
         return (
@@ -63,11 +63,14 @@ export default class Navigation extends React.Component {
             <Navbar color="faded" light>
                 <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
                 {welcomeBanner}
-                {authenticationButton}
+                {authentication}
                 <Collapse isOpen={this.state.open} navbar>
                     <Nav navbar>
                         <NavItem>
                             <NavLink href="/">Home</NavLink>
+                        </NavItem>
+                        <NavItem>
+                            <NavLink href="/register">Register</NavLink>
                         </NavItem>
                         <NavItem>
                             <NavLink href="/login">Login</NavLink>
